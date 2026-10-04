@@ -43,6 +43,15 @@ docker run --rm -v "${PWD}:/repo" squoosh-rust-audit sh /repo/lib/rebuild-rust-c
 
 瀏覽器測試使用 OPFS 與模擬 permission 狀態，未自動操作 Windows 原生目錄選擇器；系統匣互動亦未以 UI 自動化驗證。跨視窗鎖的範圍是相同瀏覽器儲存分區與來源，不協調其他程式或不同瀏覽器設定檔。取消／寫入失敗可能留下空白預留檔，重試會避讓。
 
+### Windows 發布驗證（2026-10-04）
+
+- 根目錄 `Squoosh-Batch-Windows.exe` 已更新，大小 2,046,464 bytes。
+- SHA-256：`70B7D6DC1ACECA4025E6AEC8437A7644576DDAFAE28B97587E2CC6B34DC1C1CD`。
+- 內嵌來源版本為 `5b760351bc8100fc10e31cbd544799fb0b38db97`；`build-manifest.json` 的來源摘要為 `aabc01615cc290710f1462e02330ca6b57124ddfede46da1b0ac9811fd271380`。內嵌的 36 個檔案均與建置／授權／操作說明的 SHA-256 一致。
+- `npm run test:windows` 在此 EXE 上通過九項瀏覽器情境，以及服務身分、重複啟動、缺檔修復、同大小損壞修復、其他程式占用埠號的拒絕處理；隨附 Node 啟動器的錯誤 URL 亦回傳 400 並繼續提供服務。
+- `npm test` 共 9 項通過；完整 codec、1,442 個原生異常輸入、VisDiff 與效能測試已通過。`npm audit` 為 0 項已知漏洞。
+- 格式檢查使用 Prettier 處理應用程式／測試／文件、clang-format 處理修改的 C++。提交時略過會重新格式化自動產生 codec JS 的整批 hook；原生 JS／WASM 保留工具鏈輸出。`git diff --check` 通過。
+
 ## 初次檢查報告（歷史紀錄，以下未更新行號）
 
 檢查日期：2026-10-03（Asia/Taipei）。檢查對象包含目前工作目錄的未提交修改、批次壓縮功能、現有 Windows EXE、原版 Squoosh 程式，以及隨附的 Node 啟動版本。
