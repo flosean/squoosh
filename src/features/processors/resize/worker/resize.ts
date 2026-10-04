@@ -107,8 +107,8 @@ export default async function resize(
 
   if (opts.fitMethod === 'contain') {
     const { sx, sy, sw, sh } = getContainOffsets(
-      data.width,
-      data.height,
+      input.width,
+      input.height,
       opts.width,
       opts.height,
     );

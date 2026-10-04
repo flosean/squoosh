@@ -12,7 +12,7 @@
  */
 import * as path from 'path';
 import { promises as fsp } from 'fs';
-import del from 'del';
+
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
@@ -69,7 +69,7 @@ export default async function ({ watch }) {
     'utf-8',
   );
 
-  await del('.tmp/build');
+  await fsp.rm('.tmp/build', { recursive: true, force: true });
 
   const isProduction = !watch;
 
@@ -101,6 +101,7 @@ export default async function ({ watch }) {
       format: 'cjs',
       assetFileNames: staticPath,
       exports: 'named',
+      preserveModules: true,
     },
     watch: {
       clearScreen: false,
@@ -111,7 +112,6 @@ export default async function ({ watch }) {
       // although we may need to change this number over time.
       buildDelay: 250,
     },
-    preserveModules: true,
     plugins: [
       { resolveFileUrl, resolveImportMeta: resolveImportMetaUrlInStaticBuild },
       clientBundlePlugin(
@@ -125,9 +125,13 @@ export default async function ({ watch }) {
               output: 'static/serviceworker.js',
             }),
             ...commonPlugins(),
-            commonjs(),
+            commonjs({ include: /node_modules/ }),
             resolve(),
-            replace({ __PRERENDER__: false, __PRODUCTION__: isProduction }),
+            replace({
+              preventAssignment: true,
+              __PRERENDER__: false,
+              __PRODUCTION__: isProduction,
+            }),
             entryDataPlugin(),
             isProduction ? terser({ module: true }) : {},
           ],
@@ -140,7 +144,7 @@ export default async function ({ watch }) {
           entryFileNames: jsFileName,
           // This is needed because emscripten's workers use 'this', so they trigger all kinds of interop things,
           // such as double-wrapping objects in { default }.
-          interop: false,
+          interop: 'esModule',
         },
         resolveFileUrl,
       ),
@@ -148,7 +152,11 @@ export default async function ({ watch }) {
       emitFiles({ include: '**/*', root: path.join(__dirname, 'src', 'copy') }),
       nodeExternalPlugin(),
       featurePlugin(),
-      replace({ __PRERENDER__: true, __PRODUCTION__: isProduction }),
+      replace({
+        preventAssignment: true,
+        __PRERENDER__: true,
+        __PRODUCTION__: isProduction,
+      }),
       initialCssPlugin(),
       runScript(dir + '/static-build/index.js'),
     ],

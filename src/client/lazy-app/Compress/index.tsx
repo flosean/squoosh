@@ -202,7 +202,7 @@ function stateForNewSourceData(state: State): State {
     const downloadUrl = state.sides[i].downloadUrl;
     if (downloadUrl) URL.revokeObjectURL(downloadUrl);
 
-    newState = cleanMerge(state, `sides.${i}`, {
+    newState = cleanMerge(newState, `sides.${i}`, {
       preprocessed: undefined,
       file: undefined,
       downloadUrl: undefined,
@@ -258,7 +258,7 @@ function processorStateEquivalent(a: ProcessorState, b: ProcessorState) {
   for (const key of Object.keys(a) as Array<keyof ProcessorState>) {
     // If both processors are disabled, they're the same.
     if (!a[key].enabled && !b[key].enabled) continue;
-    if (a !== b) return false;
+    if (a[key] !== b[key]) return false;
   }
 
   return true;

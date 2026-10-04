@@ -24,6 +24,10 @@ LIBAOM_OUT := $(LIBAOM_BUILD_DIR)/libaom.a
 OUT_WASM = $(OUT_JS:.js=.wasm)
 OUT_WORKER=$(OUT_JS:.js=.worker.js)
 
+# Thread mode must be active while compiling libaom/libavif, not only at link time.
+export CFLAGS := $(CFLAGS) $(OUT_FLAGS)
+export CXXFLAGS := $(CXXFLAGS) $(OUT_FLAGS)
+
 .PHONY: all clean
 
 all: $(OUT_JS)
@@ -42,7 +46,7 @@ $(OUT_JS): $(OUT_CPP) $(LIBAOM_OUT) $(CODEC_OUT)
 		$(LDFLAGS) \
 		$(OUT_FLAGS) \
 		--bind \
-		-s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+		-s ERROR_ON_UNDEFINED_SYMBOLS=1 \
 		-s ENVIRONMENT=$(ENVIRONMENT) \
 		-s EXPORT_ES6=1 \
 		-o $@ \

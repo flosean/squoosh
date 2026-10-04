@@ -4,6 +4,7 @@
     "lib": ["webworker", "esnext"]
   },
   "include": [
+    "src/shared/batch-budget.ts",
     "src/features/**/worker/**/*",
     "src/features/**/shared/**/*",
     "src/features/worker-utils/**/*",

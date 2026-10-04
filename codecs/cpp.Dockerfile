@@ -1,10 +1,11 @@
-FROM emscripten/emsdk:2.0.34
+ARG EMSDK_VERSION=2.0.34
+FROM emscripten/emsdk:${EMSDK_VERSION}
 RUN apt-get update && apt-get install -qqy autoconf libtool pkg-config
 ENV CFLAGS "-O3 -flto"
 ENV CXXFLAGS "${CFLAGS} -std=c++17"
 ENV LDFLAGS "${CFLAGS} \
 -s FILESYSTEM=0 \
--s PTHREAD_POOL_SIZE=navigator.hardwareConcurrency \
+-s PTHREAD_POOL_SIZE=4 \
 -s ALLOW_MEMORY_GROWTH=1 \
 -s TEXTDECODER=2 \
 -s NODEJS_CATCH_EXIT=0 -s NODEJS_CATCH_REJECTION=0 \

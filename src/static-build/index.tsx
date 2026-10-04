@@ -16,12 +16,6 @@ import { renderPage, writeFiles } from './utils';
 import IndexPage from './pages/index';
 import * as iconLargeMaskable from 'img-url:static-build/assets/icon-large-maskable.png';
 import * as iconLarge from 'img-url:static-build/assets/icon-large.png';
-import * as screenshot1 from 'img-url:static-build/assets/screenshot1.png';
-import * as screenshot2 from 'img-url:static-build/assets/screenshot2.jpg';
-import * as screenshot3 from 'img-url:static-build/assets/screenshot3.jpg';
-import * as screenshot4 from 'img-url:static-build/assets/screenshot4.png';
-import * as screenshot5 from 'img-url:static-build/assets/screenshot5.jpg';
-import * as screenshot6 from 'img-url:static-build/assets/screenshot6.jpg';
 import dedent from 'dedent';
 import { lookup as lookupMime } from 'mime-types';
 
@@ -31,23 +25,6 @@ interface Dimensions {
 }
 
 const manifestSize = ({ width, height }: Dimensions) => `${width}x${height}`;
-const formFactor = ({ width, height }: Dimensions) =>
-  width > height ? 'wide' : 'narrow';
-
-const screenshots = [
-  screenshot1,
-  screenshot2,
-  screenshot3,
-  screenshot4,
-  screenshot5,
-  screenshot6,
-].map((screenshot) => ({
-  src: screenshot.default,
-  type: lookupMime(screenshot.default),
-  sizes: manifestSize(screenshot),
-  form_factor: formFactor(screenshot),
-}));
-
 interface Output {
   [outputPath: string]: string;
 }
@@ -55,8 +32,8 @@ interface Output {
 const toOutput: Output = {
   'index.html': renderPage(<IndexPage />),
   'manifest.json': JSON.stringify({
-    name: 'Squoosh',
-    short_name: 'Squoosh',
+    name: 'Squoosh 批次圖片壓縮',
+    short_name: 'Squoosh 批次壓縮',
     start_url: '/?utm_medium=PWA&utm_source=launcher',
     display: 'standalone',
     orientation: 'any',
@@ -75,24 +52,9 @@ const toOutput: Output = {
         purpose: 'maskable',
       },
     ],
-    description:
-      'Compress and compare images with different codecs, right in your browser.',
-    lang: 'en',
+    description: '完全在瀏覽器離線執行的批次圖片壓縮工具。',
+    lang: 'zh-Hant',
     categories: ['photo', 'productivity', 'utilities'],
-    screenshots,
-    share_target: {
-      action: '/?utm_medium=PWA&utm_source=share-target&share-target',
-      method: 'POST',
-      enctype: 'multipart/form-data',
-      params: {
-        files: [
-          {
-            name: 'file',
-            accept: ['image/*'],
-          },
-        ],
-      },
-    },
   }),
   _headers: dedent`
     /*

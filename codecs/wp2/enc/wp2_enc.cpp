@@ -1,6 +1,7 @@
 #include <emscripten/bind.h>
 #include <emscripten/threading.h>
 #include <emscripten/val.h>
+#include <algorithm>
 #include <cstdio>
 #include "src/wp2/encode.h"
 
@@ -35,16 +36,15 @@ val encode(std::string image_in, int image_width, int image_height, WP2Options o
 
   uint8_t* image_buffer = (uint8_t*)image_in.c_str();
   WP2::ArgbBuffer src = WP2::ArgbBuffer();
-  WP2Status status =
-      src.Import(WP2_rgbA_32,  // Format. WP2_RGBA_32 is the same but NOT premultiplied alpha
-                 image_width, image_height, image_buffer, 4 * image_width);
+  WP2Status status = src.Import(WP2_RGBA_32,  // ImageData contains straight, unpremultiplied RGBA.
+                                image_width, image_height, image_buffer, 4 * image_width);
   if (status != WP2_STATUS_OK) {
     return val::null();
   }
 
   WP2::MemoryWriter memory_writer;
   // In WebP2, thread_level is number of *extra* threads to use (0 for no multithreading).
-  config.thread_level = emscripten_num_logical_cores() - 1;
+  config.thread_level = std::max(0, std::min(3, emscripten_num_logical_cores() / 2 - 1));
   status = WP2::Encode(src, &memory_writer, config);
   if (status != WP2_STATUS_OK) {
     return val::null();

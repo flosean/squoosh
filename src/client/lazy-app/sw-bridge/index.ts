@@ -60,7 +60,10 @@ export function getSharedImage(): Promise<File> {
 
 /** Set up the service worker and monitor changes */
 export async function offliner(showSnack: SnackBarElement['showSnackbar']) {
-  if (__PRODUCTION__) navigator.serviceWorker.register(swUrl);
+  if (!('serviceWorker' in navigator)) return;
+  const registrationPromise = __PRODUCTION__
+    ? navigator.serviceWorker.register(swUrl)
+    : Promise.resolve(undefined);
 
   const hasController = !!navigator.serviceWorker.controller;
 
@@ -68,7 +71,7 @@ export async function offliner(showSnack: SnackBarElement['showSnackbar']) {
   navigator.serviceWorker.addEventListener('controllerchange', async () => {
     // Is it the first install?
     if (!hasController) {
-      showSnack('Ready to work offline', { timeout: 5000 });
+      showSnack('已可離線使用', { timeout: 5000 });
       return;
     }
 
@@ -78,22 +81,23 @@ export async function offliner(showSnack: SnackBarElement['showSnackbar']) {
 
   // If we don't have a controller, we don't need to check for updates – we've just loaded from the
   // network.
+  const registered = await registrationPromise;
   if (!hasController) return;
 
-  const reg = await navigator.serviceWorker.getRegistration();
+  const reg = registered || (await navigator.serviceWorker.getRegistration());
   // Service worker not registered yet.
   if (!reg) return;
   // Look for updates
   await updateReady(reg);
 
   // Ask the user if they want to update.
-  const result = await showSnack('Update available', {
-    actions: ['reload', 'dismiss'],
+  const result = await showSnack('有可用更新', {
+    actions: ['重新載入', '稍後'],
   });
 
   // Tell the waiting worker to activate, this will change the controller and cause a reload (see
   // 'controllerchange')
-  if (result === 'reload') skipWaiting();
+  if (result === '重新載入') skipWaiting();
 }
 
 /**

@@ -135,7 +135,7 @@ val encode(std::string buffer, int width, int height, AvifOptions options) {
     RETURN_NULL_IF(status != AVIF_RESULT_OK);
   }
 
-  encoder->maxThreads = emscripten_num_logical_cores();
+  encoder->maxThreads = std::max(1, std::min(4, emscripten_num_logical_cores() / 2));
   encoder->tileRowsLog2 = options.tileRowsLog2;
   encoder->tileColsLog2 = options.tileColsLog2;
   encoder->speed = options.speed;

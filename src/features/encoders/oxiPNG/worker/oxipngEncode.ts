@@ -12,6 +12,7 @@
  */
 import { EncodeOptions } from '../shared/meta';
 import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
+import { codecThreads } from 'shared/batch-budget';
 
 async function initMT() {
   const {
@@ -20,7 +21,7 @@ async function initMT() {
     optimise,
   } = await import('codecs/oxipng/pkg-parallel/squoosh_oxipng');
   await init();
-  await initThreadPool(navigator.hardwareConcurrency);
+  await initThreadPool(codecThreads());
   return optimise;
 }
 

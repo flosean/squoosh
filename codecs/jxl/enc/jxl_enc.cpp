@@ -1,10 +1,12 @@
 #include <emscripten/bind.h>
+#include <emscripten/threading.h>
 #include <emscripten/val.h>
+#include <algorithm>
 
 #include "lib/jxl/base/thread_pool_internal.h"
+#include "lib/jxl/enc_color_management.h"
 #include "lib/jxl/enc_external_image.h"
 #include "lib/jxl/enc_file.h"
-#include "lib/jxl/enc_color_management.h"
 
 using namespace emscripten;
 
@@ -29,7 +31,7 @@ val encode(std::string image, int width, int height, JXLOptions options) {
   jxl::ImageBundle* main = &io.Main();
   jxl::ThreadPoolInternal* pool_ptr = nullptr;
 #ifdef __EMSCRIPTEN_PTHREADS__
-  jxl::ThreadPoolInternal pool;
+  jxl::ThreadPoolInternal pool(std::max(1, std::min(4, emscripten_num_logical_cores() / 2)));
   pool_ptr = &pool;
 #endif
 
@@ -105,7 +107,8 @@ val encode(std::string image, int width, int height, JXLOptions options) {
   }
 
   auto js_result = val::null();
-  if (EncodeFile(cparams, &io, &passes_enc_state, &bytes, jxl::GetJxlCms(), /*aux=*/nullptr, pool_ptr)) {
+  if (EncodeFile(cparams, &io, &passes_enc_state, &bytes, jxl::GetJxlCms(), /*aux=*/nullptr,
+                 pool_ptr)) {
     js_result = Uint8Array.new_(typed_memory_view(bytes.size(), bytes.data()));
   }
 

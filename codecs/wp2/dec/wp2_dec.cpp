@@ -9,7 +9,7 @@ thread_local const val Uint8ClampedArray = val::global("Uint8ClampedArray");
 thread_local const val ImageData = val::global("ImageData");
 
 val decode(std::string image_in) {
-  WP2::ArgbBuffer buffer(WP2_rgbA_32);
+  WP2::ArgbBuffer buffer(WP2_RGBA_32);
   WP2Status status = WP2::Decode(image_in, &buffer);
   if (status != WP2_STATUS_OK) {
     return val::null();

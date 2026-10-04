@@ -1,3 +1,5 @@
+# This pinned upstream revision treats a Clang unused-variable warning as fatal.
+CMAKE_FLAGS += -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG -Wno-error=unused-but-set-variable"
 CODEC_URL = https://chromium.googlesource.com/codecs/libwebp2/+archive/413df7caeca5013fa9a51401660f7efd8572e0ae.tar.gz
 CODEC_DIR = node_modules/wp2
 CODEC_BUILD_ROOT := $(CODEC_DIR)/build

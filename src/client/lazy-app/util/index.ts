@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 import { drawableToImageData } from './canvas';
+import { avifBrands } from './image-container';
 
 /** If render engine is Safari */
 export const isSafari =
@@ -100,19 +101,22 @@ const magicNumberMapInput = [
   [/^MM\x00*/, 'image/tiff'],
   [/^RIFF....WEBPVP8[LX ]/s, 'image/webp'],
   [/^\xF4\xFF\x6F/, 'image/webp2'],
-  [/^\x00\x00\x00 ftypavif\x00\x00\x00\x00/, 'image/avif'],
   [/^\xff\x0a/, 'image/jxl'],
   [/^\x00\x00\x00\x0cJXL \x0d\x0a\x87\x0a/, 'image/jxl'],
   [/^qoif/, 'image/qoi'],
 ] as const;
 
-export type ImageMimeTypes = typeof magicNumberMapInput[number][1];
+export type ImageMimeTypes =
+  | typeof magicNumberMapInput[number][1]
+  | 'image/avif';
 
 const magicNumberToMimeType = new Map<RegExp, ImageMimeTypes>(
   magicNumberMapInput,
 );
 
 export async function sniffMimeType(blob: Blob): Promise<ImageMimeTypes | ''> {
+  const brands = await avifBrands(blob);
+  if (brands.includes('avif') || brands.includes('avis')) return 'image/avif';
   const firstChunk = await blobToArrayBuffer(blob.slice(0, 16));
   const firstChunkString = Array.from(new Uint8Array(firstChunk))
     .map((v) => String.fromCodePoint(v))
@@ -138,15 +142,28 @@ export async function blobToImg(blob: Blob): Promise<HTMLImageElement> {
 export async function builtinDecode(
   signal: AbortSignal,
   blob: Blob,
+  maxPixels = Infinity,
 ): Promise<ImageData> {
   assertSignal(signal);
 
   // Prefer createImageBitmap as it's the off-thread option for Firefox.
-  const drawable = await abortable<HTMLImageElement | ImageBitmap>(
+  return abortable(
     signal,
-    'createImageBitmap' in self ? createImageBitmap(blob) : blobToImg(blob),
+    (async () => {
+      const drawable = await ('createImageBitmap' in self
+        ? createImageBitmap(blob)
+        : blobToImg(blob));
+      try {
+        assertSignal(signal);
+        if (drawable.width * drawable.height > maxPixels) {
+          throw Error('圖片超過 3200 萬像素上限');
+        }
+        return drawableToImageData(drawable);
+      } finally {
+        if ('close' in drawable) drawable.close();
+      }
+    })(),
   );
-  return drawableToImageData(drawable);
 }
 
 /**
@@ -282,12 +299,11 @@ export async function abortable<T>(
   promise: Promise<T>,
 ): Promise<T> {
   assertSignal(signal);
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => {
-      signal.addEventListener('abort', () =>
-        reject(new DOMException('AbortError', 'AbortError')),
-      );
-    }),
-  ]);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(new DOMException('AbortError', 'AbortError'));
+    signal.addEventListener('abort', onAbort, { once: true });
+    promise
+      .then(resolve, reject)
+      .finally(() => signal.removeEventListener('abort', onAbort));
+  });
 }

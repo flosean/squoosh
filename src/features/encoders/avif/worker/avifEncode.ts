@@ -13,15 +13,12 @@
 import type { AVIFModule } from 'codecs/avif/enc/avif_enc';
 import type { EncodeOptions } from '../shared/meta';
 import { initEmscriptenModule } from 'features/worker-utils';
-import checkThreadsSupport from 'worker-shared/supports-wasm-threads';
 
 let emscriptenModule: Promise<AVIFModule>;
 
 async function init() {
-  if (await checkThreadsSupport()) {
-    const avifEncoder = await import('codecs/avif/enc/avif_enc_mt');
-    return initEmscriptenModule<AVIFModule>(avifEncoder.default);
-  }
+  // The pthread build intermittently stalls on semi-transparent, odd-sized
+  // images. Keep encoding off the UI thread, using the reliable serial codec.
   const avifEncoder = await import('codecs/avif/enc/avif_enc.js');
   return initEmscriptenModule(avifEncoder.default);
 }

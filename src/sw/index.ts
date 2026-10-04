@@ -6,7 +6,6 @@ import {
   cacheAdditionalProcessors,
   serveShareTarget,
 } from './util';
-import { get } from 'idb-keyval';
 import { shouldCacheDynamically } from './to-cache';
 
 // Give TypeScript the correct global.
@@ -19,22 +18,16 @@ const expectedCaches = [versionedCache, dynamicCache];
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async function () {
-      const promises = [];
-      promises.push(cacheBasics(versionedCache));
-
-      // If the user has already interacted with the app, update the codecs too.
-      if (await get('user-interacted')) {
-        promises.push(cacheAdditionalProcessors(versionedCache));
-      }
-
-      await Promise.all(promises);
+      // Activation means the complete batch app is ready offline, including codecs.
+      await Promise.all([
+        cacheBasics(versionedCache),
+        cacheAdditionalProcessors(versionedCache),
+      ]);
     })(),
   );
 });
 
 self.addEventListener('activate', (event) => {
-  self.clients.claim();
-
   event.waitUntil(
     (async function () {
       // Remove old caches.
@@ -44,6 +37,7 @@ self.addEventListener('activate', (event) => {
       });
 
       await Promise.all<any>(promises);
+      await self.clients.claim();
     })(),
   );
 });

@@ -1,3 +1,29 @@
+:root {
+  color-scheme: light;
+  --background: #f7f4f8;
+  --surface: #fff;
+  --text: #322b35;
+  --muted: #6e6571;
+  --accent: #bb1b61;
+  --accent-text: #a01957;
+  --border: #d9cfd7;
+  --border-accent: #d7a9bd;
+  --tint: #f4dbe6;
+  --error: #b3261e;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --background: #17141b;
+  --surface: #24202a;
+  --text: #f4edf6;
+  --muted: #bbb0c1;
+  --accent: #bd2466;
+  --accent-text: #ff9bc5;
+  --border: #54485b;
+  --border-accent: #975b79;
+  --tint: #422539;
+  --error: #ffaba4;
+}
 button,
 a,
 img,
@@ -30,7 +56,9 @@ body {
   overflow: hidden;
   overscroll-behavior: none;
   contain: strict;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path d="M1 2V0h1v1H0v1z" fill-opacity=".025"/></svg>');
+  color: var(--text);
+  background-color: var(--background);
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path d="M1 2V0h1v1H0v1z" fill-opacity=".025"/></svg>');
   background-size: 20px 20px;
 }
 
